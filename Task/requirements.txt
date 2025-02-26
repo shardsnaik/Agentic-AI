@@ -1,0 +1,8 @@
+langgraph==0.2.75
+typing-extensions==4.12.2
+typing==3.10.0.0
+langchain==0.3.19
+langchain-community==0.3.18
+yfinance==0.2.54
+streamlit==1.42.2
+langchain-groq==0.2.4
