@@ -87,12 +87,25 @@
 import yfinance as yf
 import requests
 
-try:
-    dat = yf.Ticker("MSFT")
-    print(dat.calendar)
+# try:
+#     dat = yf.Ticker("MSFT")
+#     print(dat.calendar)
+#     # print(dat.info)
+#     print(dat.analyst_price_targets)
+#     print(dat.quarterly_income_stmt)
+#     print(dat.history(period="1d"))
+# except requests.exceptions.ConnectionError:
+#     print("Failed to connect to Yahoo Finance. Please check your internet connection and try again.")
+user_content = input('Type Here:')
+
+if 'stock' in user_content.lower():  
+        print(user_content.split(" ")[1])
+        ticker = user_content.split(" ")[1].upper()
+        dat = yf.Ticker(ticker)
+        print(dat.calendar)
     # print(dat.info)
-    print(dat.analyst_price_targets)
-    print(dat.quarterly_income_stmt)
-    print(dat.history(period="1d"))
-except requests.exceptions.ConnectionError:
-    print("Failed to connect to Yahoo Finance. Please check your internet connection and try again.")
+        print(dat.analyst_price_targets)
+        print(dat.quarterly_income_stmt)
+        print(dat.history(period="1d"))
+else:
+    print("No stock data")
