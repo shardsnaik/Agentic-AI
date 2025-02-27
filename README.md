@@ -14,7 +14,7 @@ This project integrates an AI chatbot with stock price fetching using Yahoo Fina
 ---
 🌐 Live App
 
-🔗 [[Try the App Here](https://financeagentic.streamlit.app/)]
+🔗 [[Try the App Here Finance-Agentic-AI](https://fiinanceagentic.streamlit.app/)]
 
 ## 🛠️ Setup Instructions
 
