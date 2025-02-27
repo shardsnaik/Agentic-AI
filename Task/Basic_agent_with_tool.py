@@ -63,6 +63,7 @@ graph = graph_builder.compile()
 #         for value in event.values():
 #             print("Assistant:", value["messages"][-1])
 
+
 # Modified function to use the graph object to get the response from the chatbot using rich library
 
 def stream_graph_updates(user_input: str):
