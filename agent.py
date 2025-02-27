@@ -34,7 +34,7 @@ financial_agent = Agent(
 
 multi_ai_agent = Agent(
     team=[web_search_agent, financial_agent],
-    # model= Groq(id='llama-3.2-90b-vision-preview'), # If model isn't specified, the model use openai
+    model= Groq(id='llama-3.2-90b-vision-preview'), # If model isn't specified, the model use openai
     instructions=['show sources', 'use table to show data'],
     show_tool_calls=True,
     markdown=True       

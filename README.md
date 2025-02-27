@@ -4,6 +4,7 @@ This project integrates an AI chatbot with stock price fetching using Yahoo Fina
 
 ---
 
+
 ## 🚀 Features
 - 💬 AI-powered Agent using `langGraph`
 - 📈 Fetches real-time stock prices from Yahoo Finance
@@ -11,6 +12,9 @@ This project integrates an AI chatbot with stock price fetching using Yahoo Fina
 - 🔄 Interactive chatbot with stock data retrieval
 
 ---
+🌐 Live App
+
+🔗 [[Try the App Here](https://financeagentic.streamlit.app/)]
 
 ## 🛠️ Setup Instructions
 
@@ -66,3 +70,7 @@ Once started, the app will be available in your browser at `http://localhost:850
 This project is licensed under the MIT License.
 
 ---
+📩 Contact
+
+Sharad Naik
+✉️ Email: sharadnaik001@gmail.com
