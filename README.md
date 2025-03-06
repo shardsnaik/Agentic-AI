@@ -74,3 +74,18 @@ This project is licensed under the MIT License.
 
 Sharad Naik
 ✉️ Email: sharadnaik001@gmail.com
+
+
+
+## 📈 Code Flow Diagram
+```mermaid
+graph LR
+    Start -->|User Input| Chatbot
+    Chatbot -->|Stock Query?| GetStockPrice
+    Chatbot -->|General Query| LLMInvoke
+    GetStockPrice --> Response
+    LLMInvoke --> Response
+    Response --> StreamGraphUpdates
+    StreamGraphUpdates --> RenderUI
+    RenderUI --> End
+```
