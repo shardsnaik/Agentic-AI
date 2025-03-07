@@ -11,6 +11,10 @@ from langchain.schema import HumanMessage
 from rich.console import Console
 from rich.table import Table
 
+from typing import Annotated, Optional
+from typing_extensions import TypedDict
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+
 console = Console()
 
 # Load environment variables
@@ -19,75 +23,109 @@ load_dotenv()
 # Initialize LLM
 llm = ChatGroq(model="mixtral-8x7b-32768")
 
+# Modified State definition
 class State(TypedDict):
     messages: Annotated[list, add_messages]
+    requires_approval: Optional[bool]
+    pending_ticker: Optional[str]
 
+# Initialize graph
 graph_builder = StateGraph(State)
 
 def get_stock_price(ticker: str):
-    """Fetch stock price from Yahoo Finance."""
+    """Fetch stock price from Yahoo Finance (Human-validated version)"""
     try:
-        print(ticker)
         stock = yf.Ticker(ticker)
         price = stock.history(period="1d")["Close"].iloc[-1]
-        print("printing stock callender details\n")
-        print(stock.calendar)
-        print()
-        print(stock.analyst_price_targets)
-        print("Analysis History\n")
-        print(stock.history(period="1d"))
-
-        return f"The latest closing price of {ticker.upper()} is ${price:.2f}."
+        return f"✅ Validated: {ticker.upper()} closing price is ${price:.2f}"
     except Exception as e:
-        return f"Could not fetch stock data: {str(e)}"
+        return f"❌ Error: {str(e)}"
 
+def human_approval(state: State):
+    """Node for human validation"""
+    ticker = state["pending_ticker"]
+    console.print(f"\n[bold yellow]SYSTEM:[/] Validate stock lookup for {ticker}", style="red")
+    decision = console.input("[bold yellow]Approve? (y/n): [/]").lower()
+    
+    return {
+        "requires_approval": False,
+        "messages": [
+            SystemMessage(content=f"Human {'approved' if decision == 'y' else 'rejected'} {ticker} lookup")
+        ],
+        "pending_ticker": None
+    }
 
 def chatbot(state: State):
-    user_content = state["messages"][-1].content
-    if 'stock' in user_content.lower():  
-        ticker = user_content.split(" ")[1].upper()
-        response = get_stock_price(ticker)
-    else:
-        response = llm.invoke(state["messages"]).content  
+    """Modified chatbot with approval checks"""
+    user_input = state["messages"][-1].content
+    
+    if state.get("requires_approval"):
+        # Handle post-approval logic
+        if "approved" in state["messages"][-1].content:
+            response = get_stock_price(state["pending_ticker"])
+        else:
+            response = "❌ Stock lookup canceled by human"
+        return {"messages": [AIMessage(content=response)]}
+    
+    if 'stock' in user_input.lower():
+        ticker = user_input.split()[-1].upper()
+        return {
+            "requires_approval": True,
+            "pending_ticker": ticker,
+            "messages": [AIMessage(content=f"Requesting human approval for {ticker} lookup...")]
+        }
+    
+    # Normal LLM response
+    return {"messages": [llm.invoke(state["messages"]).content]}
 
-    return {"messages": [HumanMessage(content=response)]}
-
+# Add nodes and edges
 graph_builder.add_node("chatbot", chatbot)
+graph_builder.add_node("human_approval", human_approval)
+
 graph_builder.add_edge(START, "chatbot")
-graph_builder.add_edge("chatbot", END)
+
+# Conditional edges
+def route_decision(state: State):
+    if state.get("requires_approval"):
+        return "human_approval"
+    return END
+
+graph_builder.add_conditional_edges(
+    "chatbot",
+    route_decision
+)
+
+graph_builder.add_edge("human_approval", "chatbot")
 graph = graph_builder.compile()
 
-# LangGraph Inbuild fuction!!
-# def stream_graph_updates(user_input: str):
-#     for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
-#         for value in event.values():
-#             print("Assistant:", value["messages"][-1])
-
-
-# Modified function to use the graph object to get the response from the chatbot using rich library
-
+# Modified streaming function
 def stream_graph_updates(user_input: str):
     table = Table(show_header=True, header_style="bold magenta")
     table.add_column("User", style="bold cyan", justify="right")
+    table.add_column("System", style="yellow", justify="left")
     table.add_column("Assistant", style="bold green", justify="left")
 
-    for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
-        for value in event.values():
-            assistant_reply = value["messages"][-1].content
-            table.add_row(user_input, assistant_reply)
+    for event in graph.stream({"messages": [HumanMessage(content=user_input)]}):
+        for key, value in event.items():
+            last_msg = value["messages"][-1]
+            
+            if isinstance(last_msg, SystemMessage):
+                table.add_row("", f"[System] {last_msg.content}", "")
+            else:
+                user_display = user_input if key == "chatbot" else ""
+                assistant_display = last_msg if not isinstance(last_msg, HumanMessage) else ""
+                table.add_row(user_display, "", str(assistant_display))
 
     console.print(table)
 
+# Run loop remains the same
 while True:
     try:
-        user_input = input("User: ")
+        user_input = input("\nUser: ")
         if user_input.lower() in ["quit", "exit", "q"]:
             print("Goodbye!")
             break
-
         stream_graph_updates(user_input)
-    except:
-        user_input = "What do you know about LangGraph?"
-        print("User: " + user_input)
-        stream_graph_updates(user_input)
+    except KeyboardInterrupt:
+        print("\nOperation canceled by user")
         break
