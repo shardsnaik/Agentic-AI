@@ -1,0 +1,10 @@
+subprocess.run==0.0.8
+langchain==0.3.19
+langchain-community==0.3.18
+aiohttp==3.11.12
+langchain-groq==0.2.4
+fastapi==0.115.8
+uvicorn==0.34.0
+pytesseract==0.3.13
+opencv-python==4.11.0.86
+pillow==11.1.0
